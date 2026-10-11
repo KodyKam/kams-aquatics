@@ -1,0 +1,377 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Kam's Aquatics Consult</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;600;700&family=Atkinson+Hyperlegible:wght@400;700&display=swap">
+<style>
+/* Layout: two-column workbench — consult steps left, sticky live quote right; stacks on phones.
+   Palette: "betta" — indigo-violet ground, royal-blue fins, magenta-red accent. Substrate keeps real sand/soil colours. */
+:root{
+  --bg:#f1f0f7; --panel:#ffffff; --ink:#1c1a3a; --muted:#5d5a7e; --line:#dddbeb;
+  --accent:#b8195a; --accent-soft:#f8e1ea; --fin:#1f5fc4; --fin-soft:#e3ebfa;
+  --water:#d6e3f5; --sand:#e6d5ae; --sand-ink:#3a2e17; --dirt:#5a3e2b; --dirt-ink:#f3e6d6; --crate:#8f8cab;
+  --ok:#17795a; --ok-soft:#dcf1e8; --warn:#9a5b12; --warn-soft:#f8ead3;
+  --display:"Familjen Grotesk",system-ui,sans-serif; --body:"Atkinson Hyperlegible",system-ui,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#13122a; --panel:#1c1b3a; --ink:#ecebf7; --muted:#a3a1c4; --line:#302e57;
+  --accent:#ff5c93; --accent-soft:#3d1a35; --fin:#7aa9ff; --fin-soft:#1d2a4d;
+  --water:#1a2747; --sand:#c7b17f; --dirt:#6e4c34; --crate:#77749a;
+  --ok:#5fd0a4; --ok-soft:#173a30; --warn:#f0b363; --warn-soft:#3b2c18; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#13122a; --panel:#1c1b3a; --ink:#ecebf7; --muted:#a3a1c4; --line:#302e57;
+  --accent:#ff5c93; --accent-soft:#3d1a35; --fin:#7aa9ff; --fin-soft:#1d2a4d;
+  --water:#1a2747; --sand:#c7b17f; --dirt:#6e4c34; --crate:#77749a;
+  --ok:#5fd0a4; --ok-soft:#173a30; --warn:#f0b363; --warn-soft:#3b2c18; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.5;padding:0 16px}
+.wrap{max-width:1140px;margin:0 auto;padding-block:24px 48px}
+header{display:flex;flex-wrap:wrap;align-items:end;justify-content:space-between;gap:12px;margin-bottom:20px;padding-bottom:16px;border-bottom:3px solid var(--accent)}
+h1{font-family:var(--display);font-size:1.9rem;line-height:1.1;margin:0;letter-spacing:-.01em}
+h1 small{display:block;font-family:var(--body);font-size:.85rem;font-weight:400;color:var(--muted);letter-spacing:0;margin-top:4px}
+.client{display:flex;gap:8px;flex-wrap:wrap}
+.client input{width:180px}
+.grid{display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:20px;align-items:start}
+@media (max-width:900px){.grid{grid-template-columns:1fr}}
+section.step{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:18px;margin-bottom:16px}
+.step h2{font-family:var(--display);font-size:1.15rem;margin:0 0 2px;display:flex;gap:10px;align-items:baseline}
+.step h2 .n{font-size:.75rem;color:var(--fin);font-weight:700;letter-spacing:.1em}
+.step p.hint{margin:0 0 14px;color:var(--muted);font-size:.88rem}
+label{display:flex;flex-direction:column;gap:4px;font-size:.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;font-weight:700}
+input,select{font:inherit;font-size:.95rem;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:7px 9px;text-transform:none;letter-spacing:0;font-weight:400;width:100%}
+input:focus-visible,select:focus-visible,button:focus-visible,summary:focus-visible{outline:2px solid var(--fin);outline-offset:1px}
+.fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px}
+.unit{position:relative}
+.unit input{padding-right:30px}
+.unit.pre input{padding-right:9px;padding-left:22px}
+.unit span{position:absolute;right:9px;bottom:8px;font-size:.85rem;color:var(--muted);text-transform:none;font-weight:400;pointer-events:none}
+.unit.pre span{right:auto;left:9px}
+details{margin-top:12px;font-size:.88rem}
+details summary{cursor:pointer;color:var(--fin);font-weight:700}
+details .fields{margin-top:10px}
+.tanks{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;margin-top:4px}
+.tank{text-align:left;font:inherit;color:inherit;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px;cursor:pointer;display:flex;flex-direction:column;gap:2px}
+.tank b{font-family:var(--display);font-size:1rem}
+.tank .dim{font-size:.8rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.tank .pill{align-self:flex-start;font-size:.68rem;font-weight:700;padding:1px 7px;border-radius:99px;margin-top:4px;text-transform:uppercase;letter-spacing:.05em}
+.tank.fits .pill{background:var(--ok-soft);color:var(--ok)}
+.tank.nofit{opacity:.55}
+.tank.nofit .pill{background:var(--warn-soft);color:var(--warn)}
+.tank[aria-pressed="true"]{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent) inset;opacity:1}
+.toggle{display:flex;flex-direction:row;align-items:center;gap:10px;text-transform:none;letter-spacing:0;font-size:.92rem;color:var(--ink);font-weight:700;cursor:pointer}
+.toggle input{width:18px;height:18px;accent-color:var(--accent);flex:none}
+.toggle.light{font-weight:400}
+.sub{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:16px;margin-top:14px;align-items:start}
+@media (max-width:560px){.sub{grid-template-columns:1fr}}
+svg.xs{width:100%;height:auto;display:block;border-radius:6px}
+.buy{display:flex;flex-direction:column;gap:10px}
+.buyrow{display:grid;grid-template-columns:14px 1fr auto;gap:10px;align-items:start;padding-bottom:10px;border-bottom:1px solid var(--line)}
+.buyrow:last-of-type{border-bottom:0;padding-bottom:0}
+.sw{width:14px;height:14px;border-radius:3px;margin-top:4px}
+.buyrow .t{font-weight:700}
+.buyrow .d{font-size:.82rem;color:var(--muted)}
+.buyrow .q{font-family:var(--display);font-weight:700;font-size:1.1rem;text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.note{background:var(--fin-soft);border-radius:8px;padding:10px 12px;font-size:.85rem;margin-top:12px}
+.note.warn{background:var(--warn-soft)}
+.note.hot{background:var(--accent-soft)}
+aside.quote{position:sticky;top:calc(env(safe-area-inset-top,0px) + 12px);background:var(--panel);border:1px solid var(--line);border-top:4px solid var(--fin);border-radius:10px;padding:18px}
+@media (max-width:900px){aside.quote{position:static}}
+.quote h2{font-family:var(--display);font-size:1.15rem;margin:0 0 10px}
+.quote h3{font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:var(--fin);margin:16px 0 8px}
+.items{display:flex;flex-direction:column;gap:6px}
+.item{display:grid;grid-template-columns:minmax(0,1fr) 92px 26px;gap:6px;align-items:center}
+.item input{padding:6px 8px;font-size:.9rem}
+.item .cost{text-align:right;font-variant-numeric:tabular-nums}
+.x{font:inherit;background:none;border:0;color:var(--muted);cursor:pointer;font-size:1.1rem;padding:0;border-radius:4px}
+.x:hover{color:var(--accent)}
+.btn{font:inherit;font-weight:700;font-size:.88rem;border-radius:6px;padding:7px 12px;cursor:pointer;border:1px solid var(--line);background:var(--bg);color:var(--ink)}
+.btn.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.stack{display:flex;flex-direction:column;gap:10px}
+.tier{display:flex;justify-content:space-between;align-items:center;gap:8px;background:var(--fin-soft);border-radius:8px;padding:8px 10px;font-size:.88rem}
+.tier b{font-family:var(--display);font-size:1.05rem;font-variant-numeric:tabular-nums}
+.tot{margin-top:16px;padding-top:12px;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:4px;font-variant-numeric:tabular-nums}
+.tot div{display:flex;justify-content:space-between;gap:8px}
+.tot .disc{color:var(--accent);font-weight:700}
+.tot .grand{font-family:var(--display);font-size:1.5rem;font-weight:700;margin-top:6px;padding-top:8px;border-top:2px solid var(--ink)}
+.tot .earn{color:var(--ok);font-weight:700;font-size:.9rem}
+.muted{color:var(--muted)}
+.small{font-size:.8rem}
+#toast{min-height:1.2em;font-size:.85rem;color:var(--ok);font-weight:700;margin-top:6px}
+.confirm{display:flex;gap:6px;align-items:center;font-size:.85rem;flex-wrap:wrap}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <h1>Kam's Aquatics<small>Consultation planner · natural dirted aquariums</small></h1>
+    <div class="client">
+      <input id="client" placeholder="Client name" aria-label="Client name">
+      <input id="addr" placeholder="Area / address" aria-label="Client area or address">
+    </div>
+  </header>
+
+  <div class="grid">
+    <main>
+      <section class="step">
+        <h2><span class="n">STEP 1</span>Measure the space</h2>
+        <p class="hint">Measure the wall or furniture spot where the tank will go. Clearances leave room for your hands, the filter and the lid.</p>
+        <div class="fields">
+          <label>Width available<div class="unit"><input id="spW" type="number" min="0" step="0.5" value="52"><span>in</span></div></label>
+          <label>Depth available<div class="unit"><input id="spD" type="number" min="0" step="0.5" value="20"><span>in</span></div></label>
+          <label>Height above stand<div class="unit"><input id="spH" type="number" min="0" step="0.5" value="40"><span>in</span></div></label>
+        </div>
+        <details>
+          <summary>Clearances</summary>
+          <div class="fields">
+            <label>Side gap (total)<div class="unit"><input id="clS" type="number" min="0" step="0.5" value="2"><span>in</span></div></label>
+            <label>Behind tank<div class="unit"><input id="clB" type="number" min="0" step="0.5" value="3"><span>in</span></div></label>
+            <label>Above for access<div class="unit"><input id="clT" type="number" min="0" step="0.5" value="12"><span>in</span></div></label>
+          </div>
+        </details>
+      </section>
+
+      <section class="step">
+        <h2><span class="n">STEP 2</span>Pick a tank</h2>
+        <p class="hint">Standard sizes, outside dimensions L × W × H. Tap one to plan around it.</p>
+        <div class="tanks" id="tanks"></div>
+        <div class="note warn" id="weightNote"></div>
+      </section>
+
+      <section class="step">
+        <h2><span class="n">STEP 3</span>Substrate</h2>
+        <p class="hint">Dirt bottom layer, sand cap on top. Default ratio is 1 : 2.</p>
+        <label class="toggle"><input type="checkbox" id="cichlid"> Cichlid tank (diggers) — add egg crate over the dirt</label>
+        <div class="fields" style="margin-top:12px">
+          <label>Dirt depth<div class="unit"><input id="dDepth" type="number" min="0" step="0.25" value="1"><span>in</span></div></label>
+          <label>Sand depth<div class="unit"><input id="sDepth" type="number" min="0" step="0.25" value="2"><span>in</span></div></label>
+          <label>Extra to buy<div class="unit"><input id="buffer" type="number" min="0" step="1" value="10"><span>%</span></div></label>
+        </div>
+        <details>
+          <summary>Bag sizes &amp; dirt margin</summary>
+          <div class="fields">
+            <label>Sand bag<div class="unit"><input id="sBag" type="number" min="1" step="1" value="20"><span>kg</span></div></label>
+            <label>Soil bag<div class="unit"><input id="dBag" type="number" min="1" step="1" value="25"><span>L</span></div></label>
+            <label>Keep dirt off glass<div class="unit"><input id="margin" type="number" min="0" step="0.25" value="0"><span>in</span></div></label>
+          </div>
+          <p class="muted small" style="margin:8px 0 0">Sand is figured at 1.6 kg per litre (dry play sand). A dirt margin leaves a strip of pure sand at the glass so the dirt line doesn't show from the front.</p>
+        </details>
+        <div class="sub">
+          <svg class="xs" id="xs" viewBox="0 0 300 170" role="img" aria-label="Substrate cross-section"></svg>
+          <div class="buy" id="buy"></div>
+        </div>
+        <div class="note" id="crateNote" hidden></div>
+      </section>
+    </main>
+
+    <aside class="quote">
+      <h2>Client quote</h2>
+
+      <h3>Equipment &amp; supplies</h3>
+      <div class="items" id="items"></div>
+      <div class="row" style="margin-top:8px"><button class="btn" id="addItem">+ Add item</button><span class="muted small" id="exampleTag"></span></div>
+
+      <h3>Your services</h3>
+      <div class="stack">
+        <div class="tier"><span id="tierName">Setup fee</span><b id="tierFee">$0</b></div>
+        <label class="toggle light"><input type="checkbox" id="stand"> Stand assembly (+<span id="standLbl">$25</span>)</label>
+        <div class="two">
+          <label>Materials markup<div class="unit"><input id="feePct" type="number" min="0" step="1" value="10"><span>%</span></div></label>
+          <label>Consultation<div class="unit pre"><input id="consult" type="number" min="0" step="5" value="25"><span>$</span></div></label>
+        </div>
+        <label class="toggle"><input type="checkbox" id="booked" checked> Booked during the consultation</label>
+        <label id="perkWrap">Booking reward<select id="perk">
+          <option value="waive" selected>Consultation fee credited back</option>
+          <option value="ten">10% off service charges</option>
+        </select></label>
+      </div>
+
+      <h3>Visits &amp; travel</h3>
+      <div class="two">
+        <label>Uber one way<div class="unit pre"><input id="uber" type="number" min="0" step="1" value="18"><span>$</span></div></label>
+        <label>Setup visits<select id="visits"><option value="1" selected>1 (all in one)</option><option value="2">2</option><option value="3">3</option></select></label>
+      </div>
+      <label class="toggle light" style="margin-top:10px"><input type="checkbox" id="consultTravel" checked> Bill travel for the consultation visit</label>
+      <div class="note hot" id="visitNote"></div>
+
+      <details>
+        <summary>Your rates</summary>
+        <div class="two" style="margin-top:10px">
+          <label>Setup ≤ 30 gal<div class="unit pre"><input id="rateS" type="number" min="0" step="5" value="75"><span>$</span></div></label>
+          <label>Setup &gt; 30 gal<div class="unit pre"><input id="rateL" type="number" min="0" step="5" value="125"><span>$</span></div></label>
+          <label>Stand assembly<div class="unit pre"><input id="rateStand" type="number" min="0" step="5" value="25"><span>$</span></div></label>
+          <label>Each extra visit<div class="unit pre"><input id="rateVisit" type="number" min="0" step="5" value="25"><span>$</span></div></label>
+        </div>
+      </details>
+      <label class="toggle light" style="margin-top:12px"><input type="checkbox" id="hst"> Charge HST (13%)</label>
+
+      <div class="tot" id="tot"></div>
+
+      <div class="row" style="margin-top:14px">
+        <button class="btn primary" id="copy">Copy quote</button>
+        <span id="resetWrap"><button class="btn" id="reset">New client</button></span>
+      </div>
+      <div id="toast" aria-live="polite"></div>
+    </aside>
+  </div>
+</div>
+
+<script>
+const TANKS=[
+ {n:"5.5 gal",g:5.5,l:16,w:8,h:10,lb:62},{n:"10 gal",g:10,l:20,w:10,h:12,lb:111},
+ {n:"20 High",g:20,l:24,w:12,h:16,lb:225},{n:"20 Long",g:20,l:30,w:12,h:12,lb:225},
+ {n:"29 gal",g:29,l:30,w:12,h:18,lb:330},{n:"40 Breeder",g:40,l:36,w:18,h:16,lb:458},
+ {n:"55 gal",g:55,l:48,w:13,h:21,lb:625},{n:"75 gal",g:75,l:48,w:18,h:21,lb:850},
+ {n:"90 gal",g:90,l:48,w:18,h:24,lb:1050},{n:"125 gal",g:125,l:72,w:18,h:21,lb:1400}
+];
+const $=id=>document.getElementById(id);
+const num=id=>Math.max(0,parseFloat($(id).value)||0);
+const money=v=>"$"+v.toLocaleString("en-CA",{minimumFractionDigits:2,maximumFractionDigits:2});
+const frac=x=>{const q=Math.round(x*4)/4,w=Math.floor(q),r=q-w;return (w||"")+({0:"",0.25:" ¼",0.5:" ½",0.75:" ¾"}[r])+'"'};
+const GLASS=0.25;
+
+const EXAMPLE=[["Tank",100],["Substrate (soil + sand)",30],["Plants",60],["Filtration",50]];
+let state={sel:6,items:EXAMPLE.map(([d,c])=>({d,c})),example:true};
+const INPUTS=["client","addr","spW","spD","spH","clS","clB","clT","dDepth","sDepth","buffer","sBag","dBag","margin","feePct","consult","perk","uber","visits","rateS","rateL","rateStand","rateVisit"];
+const CHECKS=["cichlid","hst","stand","booked","consultTravel"];
+const KEY="kaq2";
+function save(){try{const s={...state,f:{}};INPUTS.forEach(i=>s.f[i]=$(i).value);CHECKS.forEach(i=>s.f[i]=$(i).checked);localStorage.setItem(KEY,JSON.stringify(s))}catch(e){}}
+function load(){try{const s=JSON.parse(localStorage.getItem(KEY)||"null");if(!s)return;state.sel=s.sel;state.items=s.items;state.example=s.example;
+  INPUTS.forEach(i=>{if(s.f[i]!=null)$(i).value=s.f[i]});CHECKS.forEach(i=>{if(s.f[i]!=null)$(i).checked=s.f[i]})}catch(e){}}
+
+function renderTanks(){
+  const W=num("spW"),D=num("spD"),H=num("spH"),cs=num("clS"),cb=num("clB"),ct=num("clT");
+  $("tanks").innerHTML=TANKS.map((t,i)=>{
+    const why=[];if(t.l+cs>W)why.push("too wide");if(t.w+cb>D)why.push("too deep");if(t.h+ct>H)why.push("too tall");
+    const ok=!why.length;
+    return `<button class="tank ${ok?"fits":"nofit"}" data-i="${i}" aria-pressed="${state.sel===i}">
+      <b>${t.n}</b><span class="dim">${t.l} × ${t.w} × ${t.h}"</span>
+      <span class="pill">${ok?"Fits":why.join(", ")}</span></button>`}).join("");
+  const t=TANKS[state.sel];
+  $("weightNote").innerHTML=`<b>${t.n}</b> weighs about <b>${t.lb.toLocaleString()} lb</b> filled with water and substrate. Use a rated aquarium stand${t.lb>400?" and place it against a load-bearing wall, across the floor joists if possible":""}.`;
+}
+
+function renderSubstrate(){
+  const t=TANKS[state.sel],cich=$("cichlid").checked;
+  const L=t.l-2*GLASS,Wd=t.w-2*GLASS,m=num("margin");
+  const dd=num("dDepth"),sd=num("sDepth"),buf=1+num("buffer")/100;
+  const dirtArea=Math.max(0,L-2*m)*Math.max(0,Wd-2*m),fullArea=L*Wd;
+  const dirtL=dirtArea*dd/61.024*buf, sandL=fullArea*sd/61.024*buf+(fullArea-dirtArea)*dd/61.024*buf;
+  const sandKg=sandL*1.6, sandBags=Math.ceil(sandKg/num("sBag")||0), dirtBags=Math.ceil(dirtL/num("dBag")||0);
+  const cutL=L-0.25,cutW=Wd-0.25;
+  const panels=Math.min(Math.ceil(cutL/48)*Math.ceil(cutW/24),Math.ceil(cutL/24)*Math.ceil(cutW/48));
+  let rows=`<div class="buyrow"><span class="sw" style="background:var(--sand)"></span><div><div class="t">Sand cap</div><div class="d">${sandL.toFixed(1)} L · ${(sandL/28.317).toFixed(2)} cu ft · ≈ ${sandKg.toFixed(0)} kg</div></div><div class="q">${sandBags} bag${sandBags===1?"":"s"}</div></div>`;
+  if(cich) rows+=`<div class="buyrow"><span class="sw" style="background:var(--crate)"></span><div><div class="t">Egg crate</div><div class="d">Cut to ${frac(cutL)} × ${frac(cutW)} · 2' × 4' panels</div></div><div class="q">${panels} panel${panels===1?"":"s"}</div></div>`;
+  rows+=`<div class="buyrow"><span class="sw" style="background:var(--dirt)"></span><div><div class="t">Organic soil</div><div class="d">${dirtL.toFixed(1)} L · ${(dirtL/28.317).toFixed(2)} cu ft</div></div><div class="q">${dirtBags} bag${dirtBags===1?"":"s"}</div></div>`;
+  $("buy").innerHTML=rows+`<p class="muted small" style="margin:0">Includes ${num("buffer")}% extra for sloping and spillage. Interior footprint ≈ ${frac(L)} × ${frac(Wd)}.</p>`;
+  const cn=$("crateNote");cn.hidden=!cich;
+  if(cich) cn.innerHTML=`<b>Cichlid build order:</b> soil → egg crate pressed flat on the soil → full sand cap. Cut the crate about ¼" smaller than the inside of the glass so it drops in without bowing.${panels>1?" Join the pieces with zip ties so there are no gaps for fish to dig through.":""}`;
+
+  const total=dd+sd||1, sc=Math.min(22,90/total), x0=20,x1=280,base=150;
+  const hd=dd*sc,hs=sd*sc,dm=Math.min(m*6,40);
+  let g=`<rect x="0" y="0" width="300" height="170" fill="var(--water)"/>`;
+  g+=`<rect x="${x0}" y="${base-hd-hs}" width="${x1-x0}" height="${hs+hd}" fill="var(--sand)"/>`;
+  g+=`<rect x="${x0+dm}" y="${base-hd}" width="${x1-x0-2*dm}" height="${hd}" fill="var(--dirt)"/>`;
+  if(cich){g+=`<rect x="${x0+dm}" y="${base-hd-3}" width="${x1-x0-2*dm}" height="3" fill="var(--crate)"/>`;
+    for(let x=x0+dm;x<x1-dm;x+=8)g+=`<rect x="${x}" y="${base-hd-3}" width="1.2" height="3" fill="var(--sand)"/>`}
+  g+=`<rect x="${x0-4}" y="10" width="4" height="${base-6}" fill="var(--muted)" opacity=".5"/><rect x="${x1}" y="10" width="4" height="${base-6}" fill="var(--muted)" opacity=".5"/><rect x="${x0-4}" y="${base}" width="${x1-x0+8}" height="4" fill="var(--muted)" opacity=".5"/>`;
+  const lbl=(y,txt,c)=>`<text x="${x0+8}" y="${y}" font-size="11" font-family="Atkinson Hyperlegible,sans-serif" font-weight="700" fill="${c}">${txt}</text>`;
+  g+=lbl(base-hd-hs-6,"water","var(--ink)");
+  if(hs>12)g+=lbl(base-hd-hs/2+4-(cich?2:0),`sand ${sd}"`,"var(--sand-ink)");
+  if(hd>12)g+=lbl(base-hd/2+4,`soil ${dd}"`,"var(--dirt-ink)");
+  if(cich)g+=`<text x="${x1-8}" y="${base-hd-6}" text-anchor="end" font-size="10" font-family="Atkinson Hyperlegible,sans-serif" fill="var(--ink)">egg crate</text>`;
+  $("xs").innerHTML=g;
+}
+
+function renderItems(){
+  $("items").innerHTML=state.items.map((it,i)=>`<div class="item">
+    <input data-i="${i}" data-k="d" value="${it.d.replace(/"/g,"&quot;")}" aria-label="Item ${i+1} description">
+    <input data-i="${i}" data-k="c" class="cost" type="number" min="0" step="0.01" value="${it.c||""}" placeholder="0.00" aria-label="Item ${i+1} cost">
+    <button class="x" data-del="${i}" aria-label="Remove item">×</button></div>`).join("");
+  $("exampleTag").textContent=state.example?"Example prices — replace with real ones":"";
+}
+
+function totals(){
+  const tk=TANKS[state.sel], small=tk.g<=30;
+  const mat=state.items.reduce((s,i)=>s+(+i.c||0),0);
+  const markup=mat*num("feePct")/100;
+  const setup=small?num("rateS"):num("rateL");
+  const stand=$("stand").checked?num("rateStand"):0;
+  const visits=+$("visits").value, extraVisits=(visits-1)*num("rateVisit");
+  const consult=num("consult"), booked=$("booked").checked, perk=$("perk").value;
+  const service=markup+setup+stand+extraVisits;
+  let disc=0,discLbl="";
+  if(booked&&perk==="waive"){disc=consult;discLbl="Consultation credit"}
+  if(booked&&perk==="ten"){disc=service*0.10;discLbl="Booking discount (10% off services)"}
+  const trips=visits+($("consultTravel").checked?1:0), trav=num("uber")*2*trips;
+  const pre=mat+service+consult-disc+trav, hst=$("hst").checked?pre*0.13:0;
+  return {tk,small,mat,markup,setup,stand,visits,extraVisits,consult,disc,discLbl,trips,trav,hst,total:pre+hst,
+          earn:service+consult-disc, oneMore:num("uber")*2+num("rateVisit")};
+}
+function renderTotals(){
+  const t=totals();
+  $("tierName").textContent=`Setup fee · ${t.small?"30 gal & under":"over 30 gal"} (${t.tk.n})`;
+  $("tierFee").textContent=money(t.setup);
+  $("standLbl").textContent=money(num("rateStand"));
+  $("perkWrap").hidden=!$("booked").checked;
+  $("visitNote").innerHTML=t.visits===1
+    ? `<b>One visit does it all.</b> Buying plants and livestock up front saves the client ${money(t.oneMore)} compared with a second trip.`
+    : `Each extra visit adds ${money(t.oneMore)} (return-visit fee + round-trip travel). Doing it all in one visit would save ${money(t.oneMore*(t.visits-1))}.`;
+  $("tot").innerHTML=`<div><span>Equipment &amp; supplies</span><span>${money(t.mat)}</span></div>
+   <div><span>Materials markup (${num("feePct")}%)</span><span>${money(t.markup)}</span></div>
+   <div><span>Setup fee</span><span>${money(t.setup)}</span></div>
+   ${t.stand?`<div><span>Stand assembly</span><span>${money(t.stand)}</span></div>`:""}
+   ${t.extraVisits?`<div><span>Extra visits (${t.visits-1})</span><span>${money(t.extraVisits)}</span></div>`:""}
+   <div><span>Consultation</span><span>${money(t.consult)}</span></div>
+   ${t.disc?`<div class="disc"><span>${t.discLbl}</span><span>−${money(t.disc)}</span></div>`:""}
+   <div><span>Travel (${t.trips} round trip${t.trips===1?"":"s"})</span><span>${money(t.trav)}</span></div>
+   ${t.hst?`<div><span>HST 13%</span><span>${money(t.hst)}</span></div>`:""}
+   <div class="grand"><span>Total</span><span>${money(t.total)}</span></div>
+   <div class="earn"><span>You keep (after supplies &amp; travel)</span><span>${money(t.earn)}</span></div>`;
+}
+
+function all(){renderTanks();renderSubstrate();renderTotals();save()}
+
+document.addEventListener("input",e=>{
+  const el=e.target;
+  if(el.dataset.k){const it=state.items[+el.dataset.i];if(el.dataset.k==="c"){it.c=parseFloat(el.value)||0;state.example=false;$("exampleTag").textContent=""}else it.d=el.value;renderTotals();save();return}
+  all();
+});
+document.addEventListener("change",e=>{if(e.target.type==="checkbox"||e.target.tagName==="SELECT")all()});
+$("tanks").addEventListener("click",e=>{const b=e.target.closest(".tank");if(!b)return;state.sel=+b.dataset.i;
+  const tank=state.items.find(i=>/^tank/i.test(i.d));if(tank)tank.d="Tank – "+TANKS[state.sel].n;renderItems();all()});
+$("items").addEventListener("click",e=>{const d=e.target.dataset.del;if(d==null)return;state.items.splice(+d,1);renderItems();renderTotals();save()});
+$("addItem").onclick=()=>{state.items.push({d:"",c:0});renderItems();save();const ins=$("items").querySelectorAll("input[data-k=d]");ins[ins.length-1].focus()};
+$("cichlid").addEventListener("change",()=>{if($("cichlid").checked&&!state.items.some(i=>/egg crate/i.test(i.d))){state.items.push({d:"Egg crate",c:0});renderItems()}});
+
+$("copy").onclick=()=>{
+  const t=totals(),tk=t.tk,L=[
+   `Kam's Aquatics – Aquarium Setup Quote`,`Client: ${$("client").value||"—"}${$("addr").value?" ("+$("addr").value+")":""}`,`Date: ${new Date().toLocaleDateString("en-CA")}`,``,
+   `Tank: ${tk.n} (${tk.l} x ${tk.w} x ${tk.h} in)${$("cichlid").checked?" – cichlid build":""}`,``,
+   `EQUIPMENT & SUPPLIES`,...state.items.filter(i=>i.d||i.c).map(i=>`  ${i.d||"Item"}: ${money(+i.c||0)}`),`  Subtotal: ${money(t.mat)}`,``,
+   `SERVICES`,`  Materials sourcing (${num("feePct")}%): ${money(t.markup)}`,`  Setup fee: ${money(t.setup)}`,
+   ...(t.stand?[`  Stand assembly: ${money(t.stand)}`]:[]),...(t.extraVisits?[`  Extra visits (${t.visits-1}): ${money(t.extraVisits)}`]:[]),
+   `  Consultation: ${money(t.consult)}`,...(t.disc?[`  ${t.discLbl}: -${money(t.disc)}`]:[]),
+   `  Travel: ${money(t.trav)}`,...(t.hst?[`  HST (13%): ${money(t.hst)}`]:[]),``,
+   `TOTAL: ${money(t.total)}`,``,`Healthy aquariums. Happy fish. Natural beauty.`];
+  const done=m=>{$("toast").textContent=m;setTimeout(()=>$("toast").textContent="",2500)};
+  if(navigator.clipboard)navigator.clipboard.writeText(L.join("\n")).then(()=>done("Quote copied. Paste it into a text or email."),()=>done("Copy was blocked by this view."));else done("Copy isn't available here.");
+};
+$("resetWrap").addEventListener("click",e=>{
+  const id=e.target.id;
+  if(id==="reset")$("resetWrap").innerHTML=`<span class="confirm">Clear this client? <button class="btn" id="yes">Clear</button><button class="btn" id="no">Keep</button></span>`;
+  else if(id==="no")$("resetWrap").innerHTML=`<button class="btn" id="reset">New client</button>`;
+  else if(id==="yes"){["client","addr"].forEach(i=>$(i).value="");["cichlid","hst","stand"].forEach(i=>$(i).checked=false);$("booked").checked=true;$("visits").value="1";
+    state.items=["Tank – "+TANKS[state.sel].n,"Substrate (soil + sand)","Plants","Filtration","Lighting","Heater"].map(d=>({d,c:0}));state.example=false;
+    $("resetWrap").innerHTML=`<button class="btn" id="reset">New client</button>`;renderItems();all()}
+});
+
+load();renderItems();all();
+</script>
+</body>
+</html>
