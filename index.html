@@ -188,10 +188,7 @@ aside.quote{position:sticky;top:calc(env(safe-area-inset-top,0px) + 12px);backgr
       <div class="stack">
         <div class="tier"><span id="tierName">Setup fee</span><b id="tierFee">$0</b></div>
         <label class="toggle light"><input type="checkbox" id="stand"> Stand assembly (+<span id="standLbl">$25</span>)</label>
-        <div class="two">
-          <label>Materials markup<div class="unit"><input id="feePct" type="number" min="0" step="1" value="10"><span>%</span></div></label>
-          <label>Consultation<div class="unit pre"><input id="consult" type="number" min="0" step="5" value="25"><span>$</span></div></label>
-        </div>
+        <label>Consultation<div class="unit pre"><input id="consult" type="number" min="0" step="5" value="25"><span>$</span></div></label>
         <label class="toggle"><input type="checkbox" id="booked" checked> Booked during the consultation</label>
         <label id="perkWrap">Booking reward<select id="perk">
           <option value="waive" selected>Consultation fee credited back</option>
@@ -245,7 +242,7 @@ const GLASS=0.25;
 
 const EXAMPLE=[["Tank",100],["Substrate (soil + sand)",30],["Plants",60],["Filtration",50]];
 let state={sel:6,items:EXAMPLE.map(([d,c])=>({d,c})),example:true};
-const INPUTS=["client","addr","spW","spD","spH","clS","clB","clT","dDepth","sDepth","buffer","sBag","dBag","margin","feePct","consult","perk","uber","visits","rateS","rateL","rateStand","rateVisit"];
+const INPUTS=["client","addr","spW","spD","spH","clS","clB","clT","dDepth","sDepth","buffer","sBag","dBag","margin","consult","perk","uber","visits","rateS","rateL","rateStand","rateVisit"];
 const CHECKS=["cichlid","hst","stand","booked","consultTravel"];
 const KEY="kaq2";
 function save(){try{const s={...state,f:{}};INPUTS.forEach(i=>s.f[i]=$(i).value);CHECKS.forEach(i=>s.f[i]=$(i).checked);localStorage.setItem(KEY,JSON.stringify(s))}catch(e){}}
@@ -307,18 +304,17 @@ function renderItems(){
 function totals(){
   const tk=TANKS[state.sel], small=tk.g<=30;
   const mat=state.items.reduce((s,i)=>s+(+i.c||0),0);
-  const markup=mat*num("feePct")/100;
   const setup=small?num("rateS"):num("rateL");
   const stand=$("stand").checked?num("rateStand"):0;
   const visits=+$("visits").value, extraVisits=(visits-1)*num("rateVisit");
   const consult=num("consult"), booked=$("booked").checked, perk=$("perk").value;
-  const service=markup+setup+stand+extraVisits;
+  const service=setup+stand+extraVisits;
   let disc=0,discLbl="";
   if(booked&&perk==="waive"){disc=consult;discLbl="Consultation credit"}
   if(booked&&perk==="ten"){disc=service*0.10;discLbl="Booking discount (10% off services)"}
   const trips=visits+($("consultTravel").checked?1:0), trav=num("uber")*2*trips;
   const pre=mat+service+consult-disc+trav, hst=$("hst").checked?pre*0.13:0;
-  return {tk,small,mat,markup,setup,stand,visits,extraVisits,consult,disc,discLbl,trips,trav,hst,total:pre+hst,
+  return {tk,small,mat,setup,stand,visits,extraVisits,consult,disc,discLbl,trips,trav,hst,total:pre+hst,
           earn:service+consult-disc, oneMore:num("uber")*2+num("rateVisit")};
 }
 function renderTotals(){
@@ -330,8 +326,7 @@ function renderTotals(){
   $("visitNote").innerHTML=t.visits===1
     ? `<b>One visit does it all.</b> Buying plants and livestock up front saves the client ${money(t.oneMore)} compared with a second trip.`
     : `Each extra visit adds ${money(t.oneMore)} (return-visit fee + round-trip travel). Doing it all in one visit would save ${money(t.oneMore*(t.visits-1))}.`;
-  $("tot").innerHTML=`<div><span>Equipment &amp; supplies</span><span>${money(t.mat)}</span></div>
-   <div><span>Materials markup (${num("feePct")}%)</span><span>${money(t.markup)}</span></div>
+  $("tot").innerHTML=`<div><span>Equipment &amp; supplies (at cost)</span><span>${money(t.mat)}</span></div>
    <div><span>Setup fee</span><span>${money(t.setup)}</span></div>
    ${t.stand?`<div><span>Stand assembly</span><span>${money(t.stand)}</span></div>`:""}
    ${t.extraVisits?`<div><span>Extra visits (${t.visits-1})</span><span>${money(t.extraVisits)}</span></div>`:""}
@@ -362,7 +357,7 @@ $("copy").onclick=()=>{
    `Kam's Aquatics – Aquarium Setup Quote`,`Client: ${$("client").value||"—"}${$("addr").value?" ("+$("addr").value+")":""}`,`Date: ${new Date().toLocaleDateString("en-CA")}`,``,
    `Tank: ${tk.n} (${tk.l} x ${tk.w} x ${tk.h} in)${$("cichlid").checked?" – cichlid build":""}`,``,
    `EQUIPMENT & SUPPLIES`,...state.items.filter(i=>i.d||i.c).map(i=>`  ${i.d||"Item"}: ${money(+i.c||0)}`),`  Subtotal: ${money(t.mat)}`,``,
-   `SERVICES`,`  Materials sourcing (${num("feePct")}%): ${money(t.markup)}`,`  Setup fee: ${money(t.setup)}`,
+   `SERVICES`,`  Setup fee: ${money(t.setup)}`,
    ...(t.stand?[`  Stand assembly: ${money(t.stand)}`]:[]),...(t.extraVisits?[`  Extra visits (${t.visits-1}): ${money(t.extraVisits)}`]:[]),
    `  Consultation: ${money(t.consult)}`,...(t.disc?[`  ${t.discLbl}: -${money(t.disc)}`]:[]),
    `  Travel: ${money(t.trav)}`,...(t.hst?[`  HST (13%): ${money(t.hst)}`]:[]),``,
