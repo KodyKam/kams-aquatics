@@ -109,8 +109,8 @@ aside.quote{position:sticky;top:calc(env(safe-area-inset-top,0px) + 12px);backgr
 .tot .earn{color:var(--ok);font-weight:700;font-size:.9rem}
 .muted{color:var(--muted)}
 .seg{display:grid;grid-template-columns:1fr 1fr;gap:4px;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:4px;margin-bottom:6px}
-.seg label{display:block;cursor:pointer;text-transform:none;letter-spacing:0;font-size:.9rem;color:var(--ink)}
-.seg input{position:absolute;opacity:0;pointer-events:none}
+.seg label{display:block;position:relative;cursor:pointer;text-transform:none;letter-spacing:0;font-size:.9rem;color:var(--ink)}
+.seg input{position:absolute;inset:0;width:1px;height:1px;opacity:0;pointer-events:none}
 .seg span{display:block;text-align:center;padding:7px;border-radius:6px;font-weight:700}
 .seg input:checked+span{background:var(--fin);color:var(--panel)}
 .seg input:focus-visible+span{outline:2px solid var(--accent)}
