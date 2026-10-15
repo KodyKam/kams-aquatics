@@ -218,6 +218,15 @@ aside.quote{position:sticky;top:calc(env(safe-area-inset-top,0px) + 12px);backgr
       <label class="toggle light" style="margin-top:10px"><input type="checkbox" id="consultTravel" checked> Bill travel for the consultation visit</label>
       <div class="note hot" id="visitNote"></div>
 
+      <h3>Ongoing care</h3>
+      <label>Maintenance plan<select id="plan">
+        <option value="0" selected>None</option>
+        <option value="1">Monthly (1 visit)</option>
+        <option value="2">Twice a month</option>
+        <option value="4">Weekly (4 visits)</option>
+      </select></label>
+      <div class="tier" id="planBox" hidden><span id="planTxt">Monthly plan</span><b id="planFee">$0</b></div>
+
       <details>
         <summary>Your rates</summary>
         <div class="rates">
@@ -227,6 +236,7 @@ aside.quote{position:sticky;top:calc(env(safe-area-inset-top,0px) + 12px);backgr
           <span class="rl">Consultation</span><div class="unit pre"><input id="rateCons" type="number" min="0" step="5" value="25" aria-label="Consultation home"><span>$</span></div><div class="unit pre"><input id="rateConsC" type="number" min="0" step="5" value="50" aria-label="Consultation business"><span>$</span></div>
           <span class="rl">Shopping &amp; sourcing</span><div class="unit pre"><input id="rateSrc" type="number" min="0" step="5" value="40" aria-label="Shopping &amp; sourcing home"><span>$</span></div><div class="unit pre"><input id="rateSrcC" type="number" min="0" step="5" value="75" aria-label="Shopping &amp; sourcing business"><span>$</span></div>
           <span class="rl">Stand assembly</span><div class="unit pre"><input id="rateStand" type="number" min="0" step="5" value="25" aria-label="Stand assembly home"><span>$</span></div><div class="unit pre"><input id="rateStandC" type="number" min="0" step="5" value="40" aria-label="Stand assembly business"><span>$</span></div>
+          <span class="rl">Maintenance visit</span><div class="unit pre"><input id="rateMaint" type="number" min="0" step="5" value="40" aria-label="Maintenance visit home"><span>$</span></div><div class="unit pre"><input id="rateMaintC" type="number" min="0" step="5" value="60" aria-label="Maintenance visit business"><span>$</span></div>
           <span class="rl">Each extra visit</span><div class="unit pre"><input id="rateVisit" type="number" min="0" step="5" value="25" aria-label="Each extra visit home"><span>$</span></div><div class="unit pre"><input id="rateVisitC" type="number" min="0" step="5" value="40" aria-label="Each extra visit business"><span>$</span></div>
         </div>
       </details>
@@ -259,7 +269,7 @@ const GLASS=0.25;
 
 const EXAMPLE=[["Tank",100],["Substrate (soil + sand)",30],["Plants",60],["Filtration",50]];
 let state={sel:6,items:EXAMPLE.map(([d,c])=>({d,c})),example:true};
-const INPUTS=["client","addr","spW","spD","spH","clS","clB","clT","dDepth","sDepth","buffer","sBag","dBag","margin","perk","uber","visits","rateS","rateL","rateStand","rateVisit","rateCons","rateSrc","rateSC","rateLC","rateStandC","rateVisitC","rateConsC","rateSrcC"];
+const INPUTS=["client","addr","spW","spD","spH","clS","clB","clT","dDepth","sDepth","buffer","sBag","dBag","margin","perk","plan","uber","visits","rateS","rateL","rateStand","rateVisit","rateCons","rateSrc","rateSC","rateLC","rateStandC","rateVisitC","rateConsC","rateSrcC","rateMaint","rateMaintC"];
 const CHECKS=["cichlid","hst","stand","booked","consultTravel","source","ctRes","ctCom"];
 const KEY="kaq3";
 const isCom=()=>$("ctCom").checked;
@@ -335,7 +345,8 @@ function totals(){
   const trips=visits+($("consultTravel").checked?1:0), trav=num("uber")*2*trips;
   const pre=mat+service+consult-disc+trav, hst=$("hst").checked?pre*0.13:0;
   return {tk,small,mat,setup,stand,source,visits,extraVisits,consult,disc,discLbl,trips,trav,hst,total:pre+hst,
-          earn:service+consult-disc, oneMore:num("uber")*2+rate("rateVisit")};
+          earn:service+consult-disc, oneMore:num("uber")*2+rate("rateVisit"),
+          plan:+$("plan").value, monthly:(+$("plan").value)*(rate("rateMaint")+num("uber")*2)};
 }
 function renderTotals(){
   const t=totals();
@@ -344,6 +355,9 @@ function renderTotals(){
   $("standLbl").textContent=money(rate("rateStand"));
   $("sourceLbl").textContent=money(rate("rateSrc"));
   $("consultFee").textContent=money(t.consult);
+  $("planBox").hidden=!t.plan;
+  $("planTxt").textContent=`${t.plan} visit${t.plan>1?"s":""} a month, travel included`;
+  $("planFee").textContent=money(t.monthly)+"/mo";
   $("perkWrap").hidden=!$("booked").checked;
   $("visitNote").innerHTML=t.visits===1
     ? `<b>One visit does it all.</b> Buying plants and livestock up front saves the client ${money(t.oneMore)} compared with a second trip.`
@@ -358,7 +372,8 @@ function renderTotals(){
    <div><span>Travel (${t.trips} round trip${t.trips===1?"":"s"})</span><span>${money(t.trav)}</span></div>
    ${t.hst?`<div><span>HST 13%</span><span>${money(t.hst)}</span></div>`:""}
    <div class="grand"><span>Total</span><span>${money(t.total)}</span></div>
-   <div class="earn"><span>You keep (after supplies &amp; travel)</span><span>${money(t.earn)}</span></div>`;
+   <div class="earn"><span>You keep (after supplies &amp; travel)</span><span>${money(t.earn)}</span></div>
+   ${t.plan?`<div style="margin-top:8px;padding-top:8px;border-top:1px dashed var(--line)"><span>Then ongoing care</span><span><b>${money(t.monthly)}/month</b></span></div>`:""}`;
 }
 
 function all(){renderTanks();renderSubstrate();renderTotals();save()}
@@ -384,7 +399,7 @@ $("copy").onclick=()=>{
    ...(t.stand?[`  Stand assembly: ${money(t.stand)}`]:[]),...(t.source?[`  Shopping & sourcing: ${money(t.source)}`]:[]),...(t.extraVisits?[`  Extra visits (${t.visits-1}): ${money(t.extraVisits)}`]:[]),
    `  Consultation: ${money(t.consult)}`,...(t.disc?[`  ${t.discLbl}: -${money(t.disc)}`]:[]),
    `  Travel: ${money(t.trav)}`,...(t.hst?[`  HST (13%): ${money(t.hst)}`]:[]),``,
-   `TOTAL: ${money(t.total)}`,``,`Healthy aquariums. Happy fish. Natural beauty.`];
+   `TOTAL: ${money(t.total)}`,``,...(t.plan?[`ONGOING CARE`,`  ${t.plan} maintenance visit${t.plan>1?"s":""} a month (travel included): ${money(t.monthly)}/month`,``]:[]),`Healthy aquariums. Happy fish. Natural beauty.`];
   const done=m=>{$("toast").textContent=m;setTimeout(()=>$("toast").textContent="",2500)};
   if(navigator.clipboard)navigator.clipboard.writeText(L.join("\n")).then(()=>done("Quote copied. Paste it into a text or email."),()=>done("Copy was blocked by this view."));else done("Copy isn't available here.");
 };
@@ -392,7 +407,7 @@ $("resetWrap").addEventListener("click",e=>{
   const id=e.target.id;
   if(id==="reset")$("resetWrap").innerHTML=`<span class="confirm">Clear this client? <button class="btn" id="yes">Clear</button><button class="btn" id="no">Keep</button></span>`;
   else if(id==="no")$("resetWrap").innerHTML=`<button class="btn" id="reset">New client</button>`;
-  else if(id==="yes"){["client","addr"].forEach(i=>$(i).value="");["cichlid","hst","stand","source"].forEach(i=>$(i).checked=false);$("booked").checked=true;$("visits").value="1";
+  else if(id==="yes"){["client","addr"].forEach(i=>$(i).value="");["cichlid","hst","stand","source"].forEach(i=>$(i).checked=false);$("booked").checked=true;$("visits").value="1";$("plan").value="0";
     state.items=["Tank – "+TANKS[state.sel].n,"Substrate (soil + sand)","Plants","Filtration","Lighting","Heater"].map(d=>({d,c:0}));state.example=false;
     $("resetWrap").innerHTML=`<button class="btn" id="reset">New client</button>`;renderItems();all()}
 });
