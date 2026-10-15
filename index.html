@@ -254,6 +254,22 @@ aside.quote{position:sticky;top:calc(env(safe-area-inset-top,0px) + 12px);backgr
 </div>
 
 <script>
+const APP_VERSION="20261015050457";
+// Auto-update: compare this page's version with the live one and reload when they differ.
+(function(){
+  const re=new RegExp('APP_'+'VERSION="([^"]+)"');
+  async function check(){
+    try{
+      const r=await fetch('./index.html?check='+Date.now(),{cache:'no-store'});
+      const m=(await r.text()).match(re);
+      if(!m||m[1]===APP_VERSION)return;
+      if(new URLSearchParams(location.search).get('v')===m[1])return; // already tried; avoid loops
+      location.replace(location.pathname+'?v='+m[1]);
+    }catch(e){}
+  }
+  check();
+  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')check()});
+})();
 const TANKS=[
  {n:"5.5 gal",g:5.5,l:16,w:8,h:10,lb:62},{n:"10 gal",g:10,l:20,w:10,h:12,lb:111},
  {n:"20 High",g:20,l:24,w:12,h:16,lb:225},{n:"20 Long",g:20,l:30,w:12,h:12,lb:225},
