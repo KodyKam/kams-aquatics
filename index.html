@@ -281,6 +281,7 @@ textarea:focus-visible{outline:2px solid var(--fin);outline-offset:1px}
 
       <div class="row" style="margin-top:14px">
         <button class="btn primary" id="copy">Copy quote</button>
+        <button class="btn" id="saveClient">Save client</button>
         <span id="resetWrap"><button class="btn" id="reset">New client</button></span>
       </div>
       <div id="toast" aria-live="polite"></div>
@@ -312,7 +313,7 @@ textarea:focus-visible{outline:2px solid var(--fin);outline-offset:1px}
 </div>
 
 <script>
-const APP_VERSION="20261015233822";
+const APP_VERSION="20261015235435";
 // Auto-update: compare this page's version with the live one and reload when they differ.
 (function(){
   const re=new RegExp('APP_'+'VERSION="([^"]+)"');
@@ -407,7 +408,7 @@ function renderItems(){
 function planPrice(plan,visit,dTwice,dWeek){
   const disc=plan===2?dTwice:plan===4?dWeek:0;
   const monthly=plan?Math.round(plan*visit*(1-disc/100)/5)*5:0;
-  return {plan,disc,monthly,perVisit:plan?monthly/plan:0};
+  return {plan,planDisc:disc,monthly,perVisit:plan?monthly/plan:0};
 }
 function totals(){
   const tk=TANKS[state.sel], small=tk.g<=30;
@@ -435,7 +436,7 @@ function renderTotals(){
   $("sourceLbl").textContent=money(rate("rateSrc"));
   $("consultFee").textContent=money(t.consult);
   $("planBox").hidden=!t.plan;
-  $("planTxt").textContent=`${t.plan} visit${t.plan>1?"s":""} a month at ${money(t.perVisit)} each${t.disc?` (${t.disc}% off)`:""}, travel included`;
+  $("planTxt").textContent=`${t.plan} visit${t.plan>1?"s":""} a month at ${money(t.perVisit)} each${t.planDisc?` (${t.planDisc}% off)`:""}, travel included`;
   $("planFee").textContent=money(t.monthly)+"/mo";
   $("perkWrap").hidden=!$("booked").checked;
   $("visitNote").innerHTML=t.visits===1
@@ -469,7 +470,7 @@ $("items").addEventListener("click",e=>{const d=e.target.dataset.del;if(d==null)
 $("addItem").onclick=()=>{state.items.push({d:"",c:0});renderItems();save();const ins=$("items").querySelectorAll("input[data-k=d]");ins[ins.length-1].focus()};
 $("cichlid").addEventListener("change",()=>{if($("cichlid").checked&&!state.items.some(i=>/egg crate/i.test(i.d))){state.items.push({d:"Egg crate",c:0});renderItems()}});
 
-$("copy").onclick=()=>{
+function quoteText(){
   const t=totals(),tk=t.tk,L=[
    `Kam's Aquatics – Aquarium Setup Quote${isCom()?" (Business)":""}`,`Client: ${$("client").value||"—"}${$("addr").value?" ("+$("addr").value+")":""}`,`Date: ${new Date().toLocaleDateString("en-CA")}`,``,
    `Tank: ${tk.n} (${tk.l} x ${tk.w} x ${tk.h} in)${$("cichlid").checked?" – cichlid build":""}`,``,
@@ -479,9 +480,30 @@ $("copy").onclick=()=>{
    `  Consultation: ${money(t.consult)}`,...(t.disc?[`  ${t.discLbl}: -${money(t.disc)}`]:[]),
    `  Travel: ${money(t.trav)}`,...(t.hst?[`  HST (13%): ${money(t.hst)}`]:[]),``,
    `TOTAL: ${money(t.total)}`,``,...(t.plan?[`ONGOING CARE`,`  ${t.plan} maintenance visit${t.plan>1?"s":""} a month at ${money(t.perVisit)} each, travel included: ${money(t.monthly)}/month`,``]:[]),`Healthy aquariums. Happy fish. Natural beauty.`];
-  const done=m=>{$("toast").textContent=m;setTimeout(()=>$("toast").textContent="",2500)};
-  if(navigator.clipboard)navigator.clipboard.writeText(L.join("\n")).then(()=>done("Quote copied. Paste it into a text or email."),()=>done("Copy was blocked by this view."));else done("Copy isn't available here.");
+  return L.join("\n");
+}
+let toastT;
+const toast=(m,html)=>{clearTimeout(toastT);$("toast")[html?"innerHTML":"textContent"]=m;toastT=setTimeout(()=>$("toast").textContent="",html?6000:2500)};
+$("copy").onclick=()=>{
+  const done=m=>toast(m);
+  if(navigator.clipboard)navigator.clipboard.writeText(quoteText()).then(()=>done("Quote copied. Paste it into a text or email."),()=>done("Copy was blocked by this view."));else done("Copy isn't available here.");
 };
+$("saveClient").onclick=()=>{
+  const name=$("client").value.trim();
+  if(!name){toast("Add the client's name at the top first.");$("client").focus();return}
+  const t=totals();
+  let c=db.clients.find(x=>x.name.trim().toLowerCase()===name.toLowerCase());
+  const isNew=!c;
+  if(!c){c={id:uid(),created:today(),visits:[],name,phone:"",email:"",notes:""};db.clients.push(c)}
+  c.type=isCom()?"com":"res";
+  if($("addr").value.trim())c.addr=$("addr").value.trim();
+  if(!c.tank)c.tank=t.tk.n+($("cichlid").checked?" cichlid":"");
+  c.quotes=c.quotes||[];
+  c.quotes.push({id:uid(),date:today(),tank:t.tk.n,total:t.total,monthly:t.monthly,plan:t.plan,text:quoteText()});
+  saveDb();
+  toast(`${isNew?"Saved":"Updated"} ${esc(name)} with this quote. <button class="btn" id="openSaved" data-id="${c.id}">Open client</button>`,true);
+};
+$("toast").addEventListener("click",e=>{if(e.target.id!=="openSaved")return;cur={id:e.target.dataset.id,mode:"detail"};setTab("clients")});
 $("resetWrap").addEventListener("click",e=>{
   const id=e.target.id;
   if(id==="reset")$("resetWrap").innerHTML=`<span class="confirm">Clear this client? <button class="btn" id="yes">Clear</button><button class="btn" id="no">Keep</button></span>`;
@@ -607,6 +629,12 @@ function renderPane(){
       ${c.addr?`<dt>Address</dt><dd>${esc(c.addr)}</dd>`:""}${c.tank?`<dt>Tank(s)</dt><dd>${esc(c.tank)}</dd>`:""}
       ${c.notes?`<dt>Notes</dt><dd>${esc(c.notes)}</dd>`:""}
     </dl>
+    ${(c.quotes||[]).length?`<h3 style="margin-top:16px">Quotes (${c.quotes.length})</h3>
+    <div class="visits quotes">${c.quotes.slice().reverse().map(q=>`<div class="visit" data-q="${q.id}">
+      <div class="vh"><b>${esc(niceDate(q.date))} · ${esc(q.tank)}</b><span>${money(+q.total||0)}${q.plan?` + ${money(q.monthly)}/mo`:""}</span></div>
+      <div class="row" style="margin-top:8px"><button class="btn" data-qact="copy">Copy quote</button><span class="qdel"><button class="btn" data-qact="del">Delete</button></span></div>
+      <div class="small qmsg" style="color:var(--ok);font-weight:700;min-height:1em;margin-top:4px"></div>
+    </div>`).join("")}</div>`:""}
     <div class="row" style="margin-top:16px;justify-content:space-between">
       <h3 style="margin:0">Visit history (${visits.length})</h3>
       <button class="btn primary" id="vNew">+ New visit report</button>
@@ -634,7 +662,16 @@ function renderPane(){
     else if(id==="cDelNo")$("cDelWrap").innerHTML=`<button class="btn" id="cDel">Delete client</button>`;
     else if(id==="cDelYes"){db.clients=db.clients.filter(x=>x.id!==c.id);saveDb();cur={id:null,mode:"empty"};renderList();renderPane()}
   };
-  P.querySelector(".visits").onclick=async e=>{
+  const QB=P.querySelector(".quotes");
+  if(QB)QB.onclick=async e=>{
+    const act=e.target.dataset.qact;if(!act)return;
+    const box=e.target.closest(".visit"),q=c.quotes.find(x=>x.id===box.dataset.q);
+    if(act==="del"){box.querySelector(".qdel").innerHTML=`<span class="confirm">Delete this quote? <button class="btn" data-qact="delyes">Delete</button><button class="btn" data-qact="delno">Keep</button></span>`;return}
+    if(act==="delno"){box.querySelector(".qdel").innerHTML=`<button class="btn" data-qact="del">Delete</button>`;return}
+    if(act==="delyes"){c.quotes=c.quotes.filter(x=>x.id!==q.id);saveDb();renderPane();return}
+    try{await navigator.clipboard.writeText(q.text);box.querySelector(".qmsg").textContent="Quote copied."}catch(err){box.querySelector(".qmsg").textContent="Copy was blocked. Try again."}
+  };
+  P.querySelector(".visits:not(.quotes)").onclick=async e=>{
     const act=e.target.dataset.act;if(!act)return;
     const box=e.target.closest(".visit"),v=c.visits.find(x=>x.id===box.dataset.v),msg=box.querySelector(".vmsg");
     if(act==="edit"){cur.mode="visit";cur.visitId=v.id;renderPane();return}
