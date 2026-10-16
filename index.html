@@ -35,6 +35,7 @@
   --water:#1a2747; --sand:#c7b17f; --dirt:#6e4c34; --crate:#77749a;
   --ok:#5fd0a4; --ok-soft:#173a30; --warn:#f0b363; --warn-soft:#3b2c18; color-scheme:dark}
 *{box-sizing:border-box}
+[hidden]{display:none!important}
 body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.5;padding:0 16px}
 .wrap{max-width:1140px;margin:0 auto;padding-block:24px 48px}
 header{display:flex;flex-wrap:wrap;align-items:end;justify-content:space-between;gap:12px;margin-bottom:20px;padding-bottom:16px;border-bottom:3px solid var(--accent)}
@@ -108,6 +109,34 @@ aside.quote{position:sticky;top:calc(env(safe-area-inset-top,0px) + 12px);backgr
 .tot .grand{font-family:var(--display);font-size:1.5rem;font-weight:700;margin-top:6px;padding-top:8px;border-top:2px solid var(--ink)}
 .tot .earn{color:var(--ok);font-weight:700;font-size:.9rem}
 .muted{color:var(--muted)}
+.tabs{display:flex;gap:6px;margin:-4px 0 18px;border-bottom:1px solid var(--line)}
+.tab{font:inherit;font-weight:700;font-size:.95rem;background:none;border:0;border-bottom:3px solid transparent;color:var(--muted);padding:8px 14px;cursor:pointer;margin-bottom:-1px}
+.tab[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent)}
+.cgrid{display:grid;grid-template-columns:320px minmax(0,1fr);gap:20px;align-items:start}
+@media (max-width:900px){.cgrid{grid-template-columns:1fr}}
+.clients{display:flex;flex-direction:column;gap:6px;margin-top:12px;max-height:55vh;overflow:auto}
+.crow{font:inherit;color:inherit;text-align:left;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:9px 11px;cursor:pointer;display:flex;justify-content:space-between;gap:8px;align-items:center}
+.crow[aria-current="true"]{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent) inset}
+.crow b{display:block}
+.crow small{color:var(--muted);font-size:.8rem}
+.pilltype{font-size:.66rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;padding:2px 7px;border-radius:99px;background:var(--fin-soft);color:var(--fin);white-space:nowrap}
+.pilltype.com{background:var(--accent-soft);color:var(--accent)}
+.backup{margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}
+.empty{color:var(--muted);text-align:center;padding:40px 16px}
+.kv{display:grid;grid-template-columns:110px minmax(0,1fr);gap:6px 12px;font-size:.92rem;margin-top:10px}
+.kv dt{color:var(--muted);font-size:.78rem;text-transform:uppercase;letter-spacing:.05em;font-weight:700;padding-top:2px}
+.kv dd{margin:0;overflow-wrap:anywhere;white-space:pre-wrap}
+.checks{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:8px;margin-top:6px}
+.checks label{flex-direction:row;align-items:center;gap:10px;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:9px 11px;text-transform:none;letter-spacing:0;font-size:.92rem;color:var(--ink);font-weight:700;cursor:pointer}
+.checks input{width:18px;height:18px;accent-color:var(--ok);flex:none}
+textarea{font:inherit;font-size:.95rem;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:7px 9px;width:100%;min-height:70px;resize:vertical;text-transform:none;letter-spacing:0;font-weight:400}
+textarea:focus-visible{outline:2px solid var(--fin);outline-offset:1px}
+.visits{display:flex;flex-direction:column;gap:8px;margin-top:8px}
+.visit{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px 12px}
+.visit .vh{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:baseline}
+.visit .vh b{font-family:var(--display)}
+.visit p{margin:4px 0 0;font-size:.85rem;color:var(--muted)}
+.step h3{font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:var(--fin);margin:18px 0 8px}
 .seg{display:grid;grid-template-columns:1fr 1fr;gap:4px;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:4px;margin-bottom:6px}
 .seg label{display:block;position:relative;cursor:pointer;text-transform:none;letter-spacing:0;font-size:.9rem;color:var(--ink)}
 .seg input{position:absolute;inset:0;width:1px;height:1px;opacity:0;pointer-events:none}
@@ -127,13 +156,17 @@ aside.quote{position:sticky;top:calc(env(safe-area-inset-top,0px) + 12px);backgr
 <div class="wrap">
   <header>
     <h1>Kam's Aquatics<small>Consultation planner · natural dirted aquariums</small></h1>
-    <div class="client">
+    <div class="client" id="quoteClient">
       <input id="client" placeholder="Client name" aria-label="Client name">
       <input id="addr" placeholder="Area / address" aria-label="Client area or address">
     </div>
   </header>
+  <nav class="tabs" role="tablist" aria-label="Sections">
+    <button class="tab" id="tabQuote" role="tab" aria-selected="true">Quote</button>
+    <button class="tab" id="tabClients" role="tab" aria-selected="false">Clients &amp; visits</button>
+  </nav>
 
-  <div class="grid">
+  <div class="grid" id="quoteView">
     <main>
       <section class="step">
         <h2><span class="n">STEP 1</span>Measure the space</h2>
@@ -251,10 +284,33 @@ aside.quote{position:sticky;top:calc(env(safe-area-inset-top,0px) + 12px);backgr
       <div id="toast" aria-live="polite"></div>
     </aside>
   </div>
+
+  <section id="clientsView" hidden>
+    <div class="cgrid">
+      <div class="step clist">
+        <div class="row" style="justify-content:space-between">
+          <h2 style="font-family:var(--display);font-size:1.15rem;margin:0">Clients</h2>
+          <button class="btn primary" id="newClient">+ New client</button>
+        </div>
+        <input id="search" placeholder="Search clients" aria-label="Search clients" style="margin-top:12px">
+        <div id="clientList" class="clients"></div>
+        <div class="backup">
+          <div class="row">
+            <button class="btn" id="exportDb">Export backup</button>
+            <label class="btn" for="importDb" style="text-transform:none;letter-spacing:0;font-size:.88rem;color:var(--ink)">Import backup</label>
+            <input type="file" id="importDb" accept="application/json,.json" hidden>
+          </div>
+          <div id="importMsg" class="small muted"></div>
+          <p class="small muted" style="margin:6px 0 0">Records are saved on this device. Export a backup now and then and keep it in Files or iCloud Drive.</p>
+        </div>
+      </div>
+      <div id="cpane"></div>
+    </div>
+  </section>
 </div>
 
 <script>
-const APP_VERSION="20261015050457";
+const APP_VERSION="20261015232835";
 // Auto-update: compare this page's version with the live one and reload when they differ.
 (function(){
   const re=new RegExp('APP_'+'VERSION="([^"]+)"');
@@ -429,6 +485,198 @@ $("resetWrap").addEventListener("click",e=>{
 });
 
 load();renderItems();all();
+
+/* ---------- Clients & visit reports ---------- */
+const DBKEY="kaq-db";
+const CHECK=[["health","Health check"],["test","Water testing"],["wc","Partial water change"],["glass","Glass cleaned, inside and out"],["sand","Gentle sand clean"],["plants","Plant care"],["filter","Filter care"],["equip","Equipment check"]];
+let db={clients:[]};
+try{const d=JSON.parse(localStorage.getItem(DBKEY)||"null");if(d&&Array.isArray(d.clients))db=d}catch(e){}
+try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch(e){}
+const saveDb=()=>{try{localStorage.setItem(DBKEY,JSON.stringify(db))}catch(e){}};
+const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+const today=()=>{const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")};
+const niceDate=s=>new Date(s+"T12:00:00").toLocaleDateString("en-CA",{weekday:"short",year:"numeric",month:"short",day:"numeric"});
+let cur={id:null,mode:"empty",visitId:null};
+
+function setTab(t){
+  const q=t==="quote";
+  $("quoteView").hidden=!q;$("quoteClient").hidden=!q;$("clientsView").hidden=q;
+  $("tabQuote").setAttribute("aria-selected",q);$("tabClients").setAttribute("aria-selected",!q);
+  try{localStorage.setItem("kaq-tab",t)}catch(e){}
+  if(!q){renderList();renderPane()}
+}
+$("tabQuote").onclick=()=>setTab("quote");
+$("tabClients").onclick=()=>setTab("clients");
+
+function getClient(id){return db.clients.find(c=>c.id===id)}
+function lastVisit(c){return (c.visits||[]).slice().sort((a,b)=>b.date.localeCompare(a.date))[0]}
+
+function renderList(){
+  const q=$("search").value.trim().toLowerCase();
+  const list=db.clients.filter(c=>!q||[c.name,c.addr,c.phone,c.email].join(" ").toLowerCase().includes(q))
+    .sort((a,b)=>a.name.localeCompare(b.name));
+  $("clientList").innerHTML=list.length?list.map(c=>{const lv=lastVisit(c);return `<button class="crow" data-id="${c.id}" aria-current="${cur.id===c.id}">
+    <span><b>${esc(c.name)}</b><small>${lv?"Last visit "+esc(niceDate(lv.date)):"No visits yet"}</small></span>
+    <span class="pilltype ${c.type==="com"?"com":""}">${c.type==="com"?"Business":"Home"}</span></button>`}).join("")
+    :`<p class="small muted" style="margin:8px 2px">${db.clients.length?"No clients match that search.":"No clients yet. Add your first one to start keeping visit records."}</p>`;
+}
+$("search").addEventListener("input",e=>{e.stopPropagation();renderList()});
+$("clientList").addEventListener("click",e=>{const b=e.target.closest(".crow");if(!b)return;cur={id:b.dataset.id,mode:"detail"};renderList();renderPane()});
+$("newClient").onclick=()=>{cur={id:null,mode:"edit"};renderList();renderPane();$("cName").focus()};
+
+function field(id,label,val,type="text",ph=""){return `<label>${label}<input id="${id}" type="${type}" value="${esc(val)}" placeholder="${esc(ph)}"></label>`}
+
+function renderPane(){
+  const P=$("cpane"),c=getClient(cur.id);
+  if(cur.mode==="edit"){
+    const x=c||{type:"res"};
+    P.innerHTML=`<section class="step"><h2><span class="n">${c?"EDIT":"NEW"}</span>${c?esc(c.name):"Client"}</h2>
+      <div class="fields" style="margin-top:12px">
+        ${field("cName","Name",x.name,"text","Client or business name")}
+        <label>Type<select id="cType"><option value="res"${x.type!=="com"?" selected":""}>Home</option><option value="com"${x.type==="com"?" selected":""}>Business</option></select></label>
+        ${field("cPhone","Phone",x.phone,"tel")}
+        ${field("cEmail","Email",x.email,"email")}
+      </div>
+      <div class="fields" style="margin-top:12px">${field("cAddr","Address",x.addr)}${field("cTank","Tank(s)",x.tank,"text","e.g. 55 gal planted community")}</div>
+      <label style="margin-top:12px">Notes<textarea id="cNotes" placeholder="Access instructions, fish species, preferences">${esc(x.notes)}</textarea></label>
+      <div class="row" style="margin-top:14px"><button class="btn primary" id="cSave">Save client</button><button class="btn" id="cCancel">Cancel</button><span id="cMsg" class="small" style="color:var(--warn)"></span></div>
+    </section>`;
+    $("cSave").onclick=()=>{
+      const name=$("cName").value.trim();if(!name){$("cMsg").textContent="Add a name to save this client.";return}
+      const data={name,type:$("cType").value,phone:$("cPhone").value.trim(),email:$("cEmail").value.trim(),addr:$("cAddr").value.trim(),tank:$("cTank").value.trim(),notes:$("cNotes").value.trim()};
+      if(c)Object.assign(c,data);else{const n={id:uid(),created:today(),visits:[],...data};db.clients.push(n);cur.id=n.id}
+      saveDb();cur.mode="detail";renderList();renderPane();
+    };
+    $("cCancel").onclick=()=>{cur.mode=c?"detail":"empty";renderPane()};
+    return;
+  }
+  if(!c){P.innerHTML=`<section class="step empty"><p><b style="color:var(--ink)">Pick a client, or add a new one.</b></p><p class="small">Each client keeps their details and a record of every maintenance visit.</p></section>`;return}
+
+  if(cur.mode==="visit"){
+    const v=(c.visits||[]).find(v=>v.id===cur.visitId);
+    const lv=lastVisit(c);
+    const x=v||{date:today(),done:CHECK.map(k=>k[0]),tests:{},wc:"25",amount:lv?lv.amount:(c.type==="com"?95:75)};
+    const t=x.tests||{};
+    P.innerHTML=`<section class="step"><h2><span class="n">VISIT</span>${esc(c.name)}</h2>
+      <div class="fields" style="margin-top:12px">
+        ${field("vDate","Date",x.date,"date")}
+        <label>Visit price<div class="unit pre"><input id="vAmt" type="number" min="0" step="5" value="${esc(x.amount)}"><span>$</span></div></label>
+        <label>Water changed<div class="unit"><input id="vWc" type="number" min="0" max="100" step="5" value="${esc(x.wc)}"><span>%</span></div></label>
+      </div>
+      <h3>Completed today</h3>
+      <div class="checks">${CHECK.map(([k,l])=>`<label><input type="checkbox" data-chk="${k}"${x.done.includes(k)?" checked":""}> ${l}</label>`).join("")}</div>
+      <h3>Water test</h3>
+      <div class="fields">
+        ${field("tAmm","Ammonia (ppm)",t.amm,"text","0")}${field("tNit","Nitrite (ppm)",t.nit,"text","0")}${field("tNat","Nitrate (ppm)",t.nat,"text","10")}${field("tPh","pH",t.ph,"text","7.0")}${field("tTemp","Temp (°C)",t.temp,"text","25")}
+      </div>
+      <h3>For the client</h3>
+      <label>Notes<textarea id="vNotes" placeholder="Anything they should keep an eye on, or how the tank is doing">${esc(x.notes)}</textarea></label>
+      <label style="margin-top:10px">Supplies used<input id="vSup" value="${esc(x.supplies)}" placeholder="e.g. new filter sponge, 2 Amazon swords"></label>
+      <div class="row" style="margin-top:14px"><button class="btn primary" id="vSave">Save visit</button><button class="btn" id="vCancel">Cancel</button></div>
+    </section>`;
+    $("vSave").onclick=()=>{
+      const data={date:$("vDate").value||today(),amount:parseFloat($("vAmt").value)||0,wc:$("vWc").value,
+        done:[...P.querySelectorAll(".checks input:checked")].map(i=>i.dataset.chk),
+        tests:{amm:$("tAmm").value.trim(),nit:$("tNit").value.trim(),nat:$("tNat").value.trim(),ph:$("tPh").value.trim(),temp:$("tTemp").value.trim()},
+        notes:$("vNotes").value.trim(),supplies:$("vSup").value.trim()};
+      c.visits=c.visits||[];
+      let id=cur.visitId;
+      if(v)Object.assign(v,data);else{id=uid();c.visits.push({id,...data})}
+      saveDb();cur={id:c.id,mode:"detail",flash:id};renderList();renderPane();
+    };
+    $("vCancel").onclick=()=>{cur.mode="detail";renderPane()};
+    return;
+  }
+
+  const visits=(c.visits||[]).slice().sort((a,b)=>b.date.localeCompare(a.date));
+  P.innerHTML=`<section class="step">
+    <div class="row" style="justify-content:space-between;align-items:flex-start">
+      <div><h2 style="margin:0">${esc(c.name)}</h2><span class="pilltype ${c.type==="com"?"com":""}">${c.type==="com"?"Business":"Home"}</span></div>
+      <div class="row"><button class="btn" id="cEdit">Edit</button><button class="btn" id="cQuote">Start a quote</button></div>
+    </div>
+    <dl class="kv">
+      ${c.phone?`<dt>Phone</dt><dd>${esc(c.phone)}</dd>`:""}${c.email?`<dt>Email</dt><dd>${esc(c.email)}</dd>`:""}
+      ${c.addr?`<dt>Address</dt><dd>${esc(c.addr)}</dd>`:""}${c.tank?`<dt>Tank(s)</dt><dd>${esc(c.tank)}</dd>`:""}
+      ${c.notes?`<dt>Notes</dt><dd>${esc(c.notes)}</dd>`:""}
+    </dl>
+    <div class="row" style="margin-top:16px;justify-content:space-between">
+      <h3 style="margin:0">Visit history (${visits.length})</h3>
+      <button class="btn primary" id="vNew">+ New visit report</button>
+    </div>
+    <div class="visits">${visits.length?visits.map(v=>`<div class="visit" data-v="${v.id}">
+      <div class="vh"><b>${esc(niceDate(v.date))}</b><span>${money(+v.amount||0)}</span></div>
+      <p>${v.done.length} of ${CHECK.length} tasks${v.notes?" · "+esc(v.notes.slice(0,80))+(v.notes.length>80?"…":""):""}</p>
+      <div class="row" style="margin-top:8px">
+        <button class="btn primary" data-act="send">Send report</button>
+        <button class="btn" data-act="copy">Copy</button>
+        <button class="btn" data-act="edit">Edit</button>
+        <span class="vdel"><button class="btn" data-act="del">Delete</button></span>
+      </div>
+      <div class="small vmsg" style="color:var(--ok);font-weight:700;min-height:1em;margin-top:4px">${cur.flash===v.id?"Saved. Tap Send report to share it with the client.":""}</div>
+    </div>`).join(""):`<p class="small muted">No visits recorded yet.</p>`}</div>
+    <div class="row" style="margin-top:18px;padding-top:12px;border-top:1px solid var(--line)"><span id="cDelWrap"><button class="btn" id="cDel">Delete client</button></span></div>
+  </section>`;
+  cur.flash=null;
+  $("cEdit").onclick=()=>{cur.mode="edit";renderPane()};
+  $("vNew").onclick=()=>{cur.mode="visit";cur.visitId=null;renderPane()};
+  $("cQuote").onclick=()=>{$("client").value=c.name;$("addr").value=c.addr||"";$(c.type==="com"?"ctCom":"ctRes").checked=true;setTab("quote");all()};
+  $("cDelWrap").onclick=e=>{
+    const id=e.target.id;
+    if(id==="cDel")$("cDelWrap").innerHTML=`<span class="confirm">Delete ${esc(c.name)} and all their visits? <button class="btn" id="cDelYes">Delete</button><button class="btn" id="cDelNo">Keep</button></span>`;
+    else if(id==="cDelNo")$("cDelWrap").innerHTML=`<button class="btn" id="cDel">Delete client</button>`;
+    else if(id==="cDelYes"){db.clients=db.clients.filter(x=>x.id!==c.id);saveDb();cur={id:null,mode:"empty"};renderList();renderPane()}
+  };
+  P.querySelector(".visits").onclick=async e=>{
+    const act=e.target.dataset.act;if(!act)return;
+    const box=e.target.closest(".visit"),v=c.visits.find(x=>x.id===box.dataset.v),msg=box.querySelector(".vmsg");
+    if(act==="edit"){cur.mode="visit";cur.visitId=v.id;renderPane();return}
+    if(act==="del"){box.querySelector(".vdel").innerHTML=`<span class="confirm">Delete this visit? <button class="btn" data-act="delyes">Delete</button><button class="btn" data-act="delno">Keep</button></span>`;return}
+    if(act==="delno"){box.querySelector(".vdel").innerHTML=`<button class="btn" data-act="del">Delete</button>`;return}
+    if(act==="delyes"){c.visits=c.visits.filter(x=>x.id!==v.id);saveDb();renderList();renderPane();return}
+    const txt=reportText(c,v);
+    if(act==="send"&&navigator.share){try{await navigator.share({title:"Kam's Aquatics visit report",text:txt});return}catch(err){if(err&&err.name==="AbortError")return}}
+    try{await navigator.clipboard.writeText(txt);msg.textContent="Report copied. Paste it into a text or email."}
+    catch(err){msg.textContent="Copy was blocked. Try again."}
+  };
+}
+
+function reportText(c,v){
+  const t=v.tests||{},tl=[];
+  if(t.amm)tl.push("Ammonia "+t.amm+" ppm");if(t.nit)tl.push("Nitrite "+t.nit+" ppm");if(t.nat)tl.push("Nitrate "+t.nat+" ppm");if(t.ph)tl.push("pH "+t.ph);if(t.temp)tl.push("Temp "+t.temp+"°C");
+  const done=CHECK.filter(([k])=>v.done.includes(k)).map(([k,l])=>"✓ "+(k==="wc"&&v.wc?l+" ("+v.wc+"%)":l));
+  return [
+    "Kam's Aquatics – Maintenance Visit Report",
+    "Client: "+c.name,
+    "Date: "+niceDate(v.date),"",
+    "Completed today:",...done,
+    ...(tl.length?["","Water test: "+tl.join(" · ")]:[]),
+    ...(v.notes?["","Notes: "+v.notes]:[]),
+    ...(v.supplies?["","Supplies used: "+v.supplies]:[]),
+    "","Visit: "+money(+v.amount||0)+" (travel included)","",
+    "Thank you!","Kamara, Kam's Aquatics","healthy aquariums · happy fish · natural beauty"
+  ].join("\n");
+}
+
+$("exportDb").onclick=()=>{
+  const blob=new Blob([JSON.stringify(db,null,2)],{type:"application/json"});
+  const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="kams-aquatics-backup-"+today()+".json";
+  document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1000);
+};
+let pendingImport=null;
+$("importDb").addEventListener("change",async e=>{
+  const f=e.target.files[0];e.target.value="";if(!f)return;
+  try{const d=JSON.parse(await f.text());if(!d||!Array.isArray(d.clients))throw 0;pendingImport=d;
+    $("importMsg").innerHTML=`<span class="confirm">Replace the ${db.clients.length} client${db.clients.length===1?"":"s"} on this device with ${d.clients.length} from the backup? <button class="btn" id="impYes">Replace</button><button class="btn" id="impNo">Cancel</button></span>`}
+  catch(err){$("importMsg").textContent="That file isn't a Kam's Aquatics backup."}
+});
+$("importMsg").addEventListener("click",e=>{
+  if(e.target.id==="impYes"&&pendingImport){db=pendingImport;pendingImport=null;saveDb();cur={id:null,mode:"empty"};renderList();renderPane();$("importMsg").textContent="Backup restored."}
+  if(e.target.id==="impNo"){pendingImport=null;$("importMsg").textContent=""}
+});
+
+let startTab="quote";try{startTab=localStorage.getItem("kaq-tab")||"quote"}catch(e){}
+setTab(startTab);
 </script>
 </body>
 </html>
