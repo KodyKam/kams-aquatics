@@ -269,7 +269,9 @@ textarea:focus-visible{outline:2px solid var(--fin);outline-offset:1px}
           <span class="rl">Consultation</span><div class="unit pre"><input id="rateCons" type="number" min="0" step="5" value="25" aria-label="Consultation home"><span>$</span></div><div class="unit pre"><input id="rateConsC" type="number" min="0" step="5" value="50" aria-label="Consultation business"><span>$</span></div>
           <span class="rl">Shopping &amp; sourcing</span><div class="unit pre"><input id="rateSrc" type="number" min="0" step="5" value="40" aria-label="Shopping &amp; sourcing home"><span>$</span></div><div class="unit pre"><input id="rateSrcC" type="number" min="0" step="5" value="75" aria-label="Shopping &amp; sourcing business"><span>$</span></div>
           <span class="rl">Stand assembly</span><div class="unit pre"><input id="rateStand" type="number" min="0" step="5" value="25" aria-label="Stand assembly home"><span>$</span></div><div class="unit pre"><input id="rateStandC" type="number" min="0" step="5" value="40" aria-label="Stand assembly business"><span>$</span></div>
-          <span class="rl">Maintenance visit</span><div class="unit pre"><input id="rateMaint" type="number" min="0" step="5" value="40" aria-label="Maintenance visit home"><span>$</span></div><div class="unit pre"><input id="rateMaintC" type="number" min="0" step="5" value="60" aria-label="Maintenance visit business"><span>$</span></div>
+          <span class="rl">Maintenance visit, travel incl.</span><div class="unit pre"><input id="rateCare" type="number" min="0" step="5" value="75" aria-label="Maintenance visit, travel incl. home"><span>$</span></div><div class="unit pre"><input id="rateCareC" type="number" min="0" step="5" value="95" aria-label="Maintenance visit, travel incl. business"><span>$</span></div>
+          <span class="rl">Twice-a-month discount</span><div class="unit"><input id="discTwice" type="number" min="0" max="50" step="1" value="10" aria-label="Twice-a-month discount home"><span>%</span></div><div class="unit"><input id="discTwiceC" type="number" min="0" max="50" step="1" value="10" aria-label="Twice-a-month discount business"><span>%</span></div>
+          <span class="rl">Weekly discount</span><div class="unit"><input id="discWeek" type="number" min="0" max="50" step="1" value="15" aria-label="Weekly discount home"><span>%</span></div><div class="unit"><input id="discWeekC" type="number" min="0" max="50" step="1" value="15" aria-label="Weekly discount business"><span>%</span></div>
           <span class="rl">Each extra visit</span><div class="unit pre"><input id="rateVisit" type="number" min="0" step="5" value="25" aria-label="Each extra visit home"><span>$</span></div><div class="unit pre"><input id="rateVisitC" type="number" min="0" step="5" value="40" aria-label="Each extra visit business"><span>$</span></div>
         </div>
       </details>
@@ -310,7 +312,7 @@ textarea:focus-visible{outline:2px solid var(--fin);outline-offset:1px}
 </div>
 
 <script>
-const APP_VERSION="20261015232835";
+const APP_VERSION="20261015233822";
 // Auto-update: compare this page's version with the live one and reload when they differ.
 (function(){
   const re=new RegExp('APP_'+'VERSION="([^"]+)"');
@@ -341,7 +343,7 @@ const GLASS=0.25;
 
 const EXAMPLE=[["Tank",100],["Substrate (soil + sand)",30],["Plants",60],["Filtration",50]];
 let state={sel:6,items:EXAMPLE.map(([d,c])=>({d,c})),example:true};
-const INPUTS=["client","addr","spW","spD","spH","clS","clB","clT","dDepth","sDepth","buffer","sBag","dBag","margin","perk","plan","uber","visits","rateS","rateL","rateStand","rateVisit","rateCons","rateSrc","rateSC","rateLC","rateStandC","rateVisitC","rateConsC","rateSrcC","rateMaint","rateMaintC"];
+const INPUTS=["client","addr","spW","spD","spH","clS","clB","clT","dDepth","sDepth","buffer","sBag","dBag","margin","perk","plan","uber","visits","rateS","rateL","rateStand","rateVisit","rateCons","rateSrc","rateSC","rateLC","rateStandC","rateVisitC","rateConsC","rateSrcC","rateCare","rateCareC","discTwice","discTwiceC","discWeek","discWeekC"];
 const CHECKS=["cichlid","hst","stand","booked","consultTravel","source","ctRes","ctCom"];
 const KEY="kaq3";
 const isCom=()=>$("ctCom").checked;
@@ -402,6 +404,11 @@ function renderItems(){
   $("exampleTag").textContent=state.example?"Example prices — replace with real ones":"";
 }
 
+function planPrice(plan,visit,dTwice,dWeek){
+  const disc=plan===2?dTwice:plan===4?dWeek:0;
+  const monthly=plan?Math.round(plan*visit*(1-disc/100)/5)*5:0;
+  return {plan,disc,monthly,perVisit:plan?monthly/plan:0};
+}
 function totals(){
   const tk=TANKS[state.sel], small=tk.g<=30;
   const mat=state.items.reduce((s,i)=>s+(+i.c||0),0);
@@ -418,7 +425,7 @@ function totals(){
   const pre=mat+service+consult-disc+trav, hst=$("hst").checked?pre*0.13:0;
   return {tk,small,mat,setup,stand,source,visits,extraVisits,consult,disc,discLbl,trips,trav,hst,total:pre+hst,
           earn:service+consult-disc, oneMore:num("uber")*2+rate("rateVisit"),
-          plan:+$("plan").value, monthly:(+$("plan").value)*(rate("rateMaint")+num("uber")*2)};
+          ...planPrice(+$("plan").value,rate("rateCare"),rate("discTwice"),rate("discWeek"))};
 }
 function renderTotals(){
   const t=totals();
@@ -428,7 +435,7 @@ function renderTotals(){
   $("sourceLbl").textContent=money(rate("rateSrc"));
   $("consultFee").textContent=money(t.consult);
   $("planBox").hidden=!t.plan;
-  $("planTxt").textContent=`${t.plan} visit${t.plan>1?"s":""} a month, travel included`;
+  $("planTxt").textContent=`${t.plan} visit${t.plan>1?"s":""} a month at ${money(t.perVisit)} each${t.disc?` (${t.disc}% off)`:""}, travel included`;
   $("planFee").textContent=money(t.monthly)+"/mo";
   $("perkWrap").hidden=!$("booked").checked;
   $("visitNote").innerHTML=t.visits===1
@@ -471,7 +478,7 @@ $("copy").onclick=()=>{
    ...(t.stand?[`  Stand assembly: ${money(t.stand)}`]:[]),...(t.source?[`  Shopping & sourcing: ${money(t.source)}`]:[]),...(t.extraVisits?[`  Extra visits (${t.visits-1}): ${money(t.extraVisits)}`]:[]),
    `  Consultation: ${money(t.consult)}`,...(t.disc?[`  ${t.discLbl}: -${money(t.disc)}`]:[]),
    `  Travel: ${money(t.trav)}`,...(t.hst?[`  HST (13%): ${money(t.hst)}`]:[]),``,
-   `TOTAL: ${money(t.total)}`,``,...(t.plan?[`ONGOING CARE`,`  ${t.plan} maintenance visit${t.plan>1?"s":""} a month (travel included): ${money(t.monthly)}/month`,``]:[]),`Healthy aquariums. Happy fish. Natural beauty.`];
+   `TOTAL: ${money(t.total)}`,``,...(t.plan?[`ONGOING CARE`,`  ${t.plan} maintenance visit${t.plan>1?"s":""} a month at ${money(t.perVisit)} each, travel included: ${money(t.monthly)}/month`,``]:[]),`Healthy aquariums. Happy fish. Natural beauty.`];
   const done=m=>{$("toast").textContent=m;setTimeout(()=>$("toast").textContent="",2500)};
   if(navigator.clipboard)navigator.clipboard.writeText(L.join("\n")).then(()=>done("Quote copied. Paste it into a text or email."),()=>done("Copy was blocked by this view."));else done("Copy isn't available here.");
 };
@@ -556,7 +563,7 @@ function renderPane(){
   if(cur.mode==="visit"){
     const v=(c.visits||[]).find(v=>v.id===cur.visitId);
     const lv=lastVisit(c);
-    const x=v||{date:today(),done:CHECK.map(k=>k[0]),tests:{},wc:"25",amount:lv?lv.amount:(c.type==="com"?95:75)};
+    const x=v||{date:today(),done:CHECK.map(k=>k[0]),tests:{},wc:"25",amount:lv?lv.amount:num(c.type==="com"?"rateCareC":"rateCare")};
     const t=x.tests||{};
     P.innerHTML=`<section class="step"><h2><span class="n">VISIT</span>${esc(c.name)}</h2>
       <div class="fields" style="margin-top:12px">
